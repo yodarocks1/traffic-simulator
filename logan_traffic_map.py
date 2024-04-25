@@ -86,7 +86,7 @@ def nodes_from_dict(node_data: dict[str, dict[str, dict[str, typing.Union[type, 
                         speed = speeds[road_b]
                     else:
                         speed = default_speed
-                    node.add_edge(other_node, dist / (speed / 60), direction_in=direction)
+                    node.add_edge(other_node, dist / (speed / 60), direction=direction)
 
     return nodes, coordinates
 
@@ -447,9 +447,10 @@ class LoganTrafficMap(TrafficMap):
         self.get_data = lambda: (text, latitudes, longitudes)
         return text, latitudes, longitudes
 
+    EDGE_OFFSET = 0.00001
     def get_edge_data(self):
         data = self.coord_dict
-        edge_list: list[tuple[tuple[str, str], tuple[str, str], float]] = map(lambda edge: (edge[0].roads, edge[1].roads, edge[2]), self.edge_list)
+        edge_list: list[tuple[tuple[str, str], tuple[str, str], float, Direction]] = map(lambda edge: (edge[0].roads, edge[1].roads, edge[2]['weight'], edge[2]['direction']), self.edge_list)
         texts: list[str] = []
         latitudes: list[tuple[float, float]] = []
         longitudes: list[tuple[float, float]] = []
@@ -457,6 +458,18 @@ class LoganTrafficMap(TrafficMap):
         for edge in edge_list:
             lat0, lon0 = data[edge[0][0]][edge[0][1]]
             lat1, lon1 = data[edge[1][0]][edge[1][1]]
+            if edge[3] is Direction.NB:
+                lon0 -= 1.2*self.EDGE_OFFSET
+                lon1 -= 1.2*self.EDGE_OFFSET
+            elif edge[3] is Direction.SB:
+                lon0 += 1.2*self.EDGE_OFFSET
+                lon1 += 1.2*self.EDGE_OFFSET
+            elif edge[3] is Direction.EB:
+                lat0 += self.EDGE_OFFSET
+                lat1 += self.EDGE_OFFSET
+            elif edge[3] is Direction.WB:
+                lat0 -= self.EDGE_OFFSET
+                lat1 -= self.EDGE_OFFSET
             texts.append(edge[2])
             latitudes.append((lat0, lat1))
             longitudes.append((lon0, lon1))
@@ -500,9 +513,7 @@ class LoganTrafficMap(TrafficMap):
             longitudes.append((lon0, lon1))
         self.get_generator_data = lambda: (texts, latitudes, longitudes)
         return texts, latitudes, longitudes
-
-    def colors(self):
-        return self.get_data()[3]
+    
     def texts(self):
         return self.get_data()[0]
     def latitudes(self):
@@ -525,3 +536,8 @@ class LoganTrafficMap(TrafficMap):
         return self.get_generator_data()[1]
     def generator_longitudes(self):
         return self.get_generator_data()[2]
+
+
+if __name__ == '__main__':
+    map_ = LoganTrafficMap()
+    map_.draw()

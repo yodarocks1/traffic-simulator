@@ -1,37 +1,37 @@
 from collections import OrderedDict
 import enum
 import typing
+import networkx as nx
 
 EdgeWeight = typing.NewType("EdgeWeight", float)
-Edge = tuple['ControlledIntersection', 'ControlledIntersection', EdgeWeight]
-Generator = tuple['ControlledIntersection', 'TrafficGenerator']
+Edge = tuple['ControlledIntersection', 'ControlledIntersection', dict[str, typing.Union[EdgeWeight, 'Direction']]]
+Generator = tuple['ControlledIntersection', 'TrafficGenerator', 'Direction']
 
 # TRAFFIC MAP
-class TrafficMap:
+class TrafficMap(nx.DiGraph):
     def __init__(self, node_list: list['ControlledIntersection'], edge_list: list[Edge], generator_list: list[Generator], cars_per_unit: float):
-        self.node_list = node_list
+        super().__init__(edge_list)
+        self.update(nodes=node_list)
         self.edge_list = edge_list
         self.generator_list = generator_list
         self.cars_per_unit = cars_per_unit
     def get_observation_size(self) -> int:
         observation_size = 0
-        for node in self.node_list:
+        for node in self.nodes:
             observation_size += node.get_observation_size()
         return observation_size
     def get_action_size(self) -> int:
         action_size = 0
-        for node in self.node_list:
+        for node in self.nodes:
             action_size += node.get_action_size()
         return action_size
     def get_destinations_and_weights(self) -> tuple[list['ControlledIntersection'], list[EdgeWeight]]:
         destinations = {}
-        for node in self.node_list:
+        for node in self.nodes:
             if node.destination_weight > 0:
                 destinations[node] = node.destination_weight
         dests, weights = zip(*destinations.items())
         return dests, weights
-    def colors(self):
-        raise NotImplementedError()
     def texts(self):
         raise NotImplementedError()
     def latitudes(self):
@@ -52,6 +52,8 @@ class TrafficMap:
         raise NotImplementedError()
     def generator_longitudes(self):
         raise NotImplementedError()
+    def draw(self):
+        nx.draw(self)
 
 class TrafficGenerator:
     def __init__(self, rate):
@@ -70,27 +72,27 @@ class ControlledIntersection:
         self.eb = None
         self.wb = None
 
-    def add_edge(self, other_node: 'ControlledIntersection', weight: EdgeWeight, direction_in: typing.Optional['Direction'] = None):
-        self.edges[other_node] = weight
-        if direction_in == Direction.NB:
+    def add_edge(self, other_node: 'ControlledIntersection', weight: EdgeWeight, direction: typing.Optional['Direction'] = None):
+        self.edges[other_node] = {"weight": weight, "direction": direction}
+        if direction == Direction.NB:
             self.nb = (other_node, weight)
-        elif direction_in == Direction.SB:
+        elif direction == Direction.SB:
             self.sb = (other_node, weight)
-        elif direction_in == Direction.EB:
+        elif direction == Direction.EB:
             self.eb = (other_node, weight)
-        elif direction_in == Direction.WB:
+        elif direction == Direction.WB:
             self.wb = (other_node, weight)
 
-    def add_generator(self, direction_in: 'Direction', generator: TrafficGenerator):
-        if direction_in == Direction.NB:
+    def add_generator(self, direction: 'Direction', generator: TrafficGenerator):
+        if direction == Direction.NB:
             self.nb = generator
-        elif direction_in == Direction.SB:
+        elif direction == Direction.SB:
             self.sb = generator
-        elif direction_in == Direction.EB:
+        elif direction == Direction.EB:
             self.eb = generator
-        elif direction_in == Direction.WB:
+        elif direction == Direction.WB:
             self.wb = generator
-        self.generators.append((generator, direction_in))
+        self.generators.append((generator, direction))
 
     def get_edges(self) -> list[Edge]:
         edge_list = []
@@ -102,17 +104,20 @@ class ControlledIntersection:
         for generator in self.generators:
             gen_list.append((self, *generator))
         return gen_list
-    def get_edge(self, parameter: typing.Union['ControlledIntersection', 'Direction']) -> tuple['ControlledIntersection', EdgeWeight]:
-        if type(parameter) is ControlledIntersection:
-            return (parameter, self.edges.get(parameter))
-        elif parameter == Direction.NB:
+    def get_edge(self, direction: 'Direction') -> tuple['ControlledIntersection', EdgeWeight]:
+        if direction == Direction.NB:
             return self.nb
-        elif parameter == Direction.EB:
+        elif direction == Direction.EB:
             return self.eb
-        elif parameter == Direction.SB:
+        elif direction == Direction.SB:
             return self.sb
-        elif parameter == Direction.WB:
+        elif direction == Direction.WB:
             return self.wb
+    def get_edge_data(self, other: 'ControlledIntersection') -> dict[str, typing.Union[EdgeWeight, 'Direction']]:
+        return self.edges.get(other)
+
+    def __hash__(self):
+        return hash(self.id_)
 
     def get_observation_size(self) -> int:
         raise NotImplementedError()
@@ -283,6 +288,8 @@ class Action(Flag):
         if Action.LEFT_YIELDS in self:
             raise ValueError("Cannot invert Action.LEFT_YIELDS")
         return super().__invert__() & Action.ALL
+    def __mul__(self, other: Direction) -> 'Phase':
+        return other.__mul__(self)
 class Phase(Flag):
     _ignore_ = ["PhasePart", "direction", "action"]
     PhasePart = vars()
@@ -291,6 +298,7 @@ class Phase(Flag):
             continue
         for action in Action:
             PhasePart[direction.name + "_" + action.name] = direction.__mul__(action, do_cast=False)
+    NONE = 0
 
     @classmethod
     def _names(cls) -> dict['Phase', str]:

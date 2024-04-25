@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>a056521c-4dc0-4b28-aa43-5f2c05c64bf5</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>traffic.py</StartupFile>
+    <StartupFile>app.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -16,6 +16,7 @@
     <InterpreterArguments>
     </InterpreterArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -27,6 +28,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="logan_traffic_map.py" />
+    <Compile Include="app.py" />
     <Compile Include="traffic.py" />
     <Compile Include="traffic_env.py" />
     <Compile Include="traffic_map.py" />
