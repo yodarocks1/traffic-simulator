@@ -93,10 +93,10 @@ def nodes_from_dict(node_data: dict[str, dict[str, dict[str, typing.Union[type, 
 
 class GeneratorMajor(TrafficGenerator):
     def __init__(self, rate=1):
-        super().__init__(rate*10)
+        super().__init__(rate*5)
 class GeneratorMinor(TrafficGenerator):
     def __init__(self, rate=1):
-        super().__init__(rate*0.5)
+        super().__init__(rate*0.25)
 class LoganTrafficMap(TrafficMap):
     INTERSECTION_DATA = {
         "Main St": {
@@ -433,21 +433,35 @@ class LoganTrafficMap(TrafficMap):
 
     def get_data(self):
         data = self.coord_dict
-        roads_list: list[tuple[str, str]] = []
+        roads_list: list[tuple[str, str, str]] = []
         for road_a in data:
             for road_b in data[road_a]:
-                roads_list.append((road_a, road_b))
+                roads_list.append((road_a, road_b, self.INTERSECTION_DATA[road_a][road_b]["type"].get_icon()))
         latitudes: list[float] = []
         longitudes: list[float] = []
+        extras = []
         for roads in roads_list:
             lat, lon = data[roads[0]][roads[1]]
             latitudes.append(lat)
             longitudes.append(lon)
-        text = list(map(lambda r: f"{r[0]}, {r[1]}", roads_list))
-        self.get_data = lambda: (text, latitudes, longitudes)
-        return text, latitudes, longitudes
+            typ = self.INTERSECTION_DATA[roads[0]][roads[1]]["type"]
+            if typ is SignIntersection:
+                through = self.INTERSECTION_DATA[roads[0]][roads[1]]["args"][1]
+                if through == "NS":
+                    extras.append("<b><em>Stop</em> EW</b>")
+                elif through == "EW":
+                    extras.append("<b><em>Stop</em> NS</b>")
+                else:
+                    extras.append("<b><em>Stop</em> all</b>")
+            elif typ is RoundaboutIntersection:
+                extras.append("<em>Roundabout</em>")
+            else:
+                extras.append("<em>Traffic Light</em>")
+        text = list(map(lambda r: f"{r[2]} {r[0]}, {r[1]}", roads_list))
+        self.get_data = lambda: (text, latitudes, longitudes, extras)
+        return text, latitudes, longitudes, extras
 
-    EDGE_OFFSET = 0.00001
+    EDGE_OFFSET = 0.00005
     def get_edge_data(self):
         data = self.coord_dict
         edge_list: list[tuple[tuple[str, str], tuple[str, str], float, Direction]] = map(lambda edge: (edge[0].roads, edge[1].roads, edge[2]['weight'], edge[2]['direction']), self.edge_list)
@@ -520,6 +534,8 @@ class LoganTrafficMap(TrafficMap):
         return self.get_data()[1]
     def longitudes(self):
         return self.get_data()[2]
+    def extras(self):
+        return self.get_data()[3]
 
     def edge_texts(self):
         return self.get_edge_data()[0]

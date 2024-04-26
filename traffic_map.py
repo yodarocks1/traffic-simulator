@@ -1,4 +1,4 @@
-from collections import OrderedDict
+﻿from collections import OrderedDict
 import enum
 import typing
 import networkx as nx
@@ -16,9 +16,9 @@ class TrafficMap(nx.DiGraph):
         self.generator_list = generator_list
         self.cars_per_unit = cars_per_unit
         self.edge_indexer = {}
+        for i, node in enumerate(node_list):
+            self.edge_indexer[node] = {None: i}
         for i, edge in enumerate(edge_list):
-            if edge[0] not in self.edge_indexer:
-                self.edge_indexer[edge[0]] = {}
             self.edge_indexer[edge[0]][edge[1]] = i
     def get_observation_size(self) -> int:
         observation_size = 0
@@ -37,16 +37,22 @@ class TrafficMap(nx.DiGraph):
                 destinations[node] = node.destination_weight
         dests, weights = zip(*destinations.items())
         return dests, weights
-    def get_edge_index(self, node_from: 'ControlledIntersection', node_to: 'ControlledIntersection'):
+    def get_edge_index(self, node_from: 'ControlledIntersection', node_to: 'ControlledIntersection') -> int:
         if node_from not in self.edge_indexer:
             return None
         return self.edge_indexer[node_from].get(node_to)
+    def get_node_index(self, node: 'ControlledIntersection') -> int:
+        if node not in self.edge_indexer:
+            return None
+        return self.edge_indexer[node].get(None)
 
     def texts(self):
         raise NotImplementedError()
     def latitudes(self):
         raise NotImplementedError()
     def longitudes(self):
+        raise NotImplementedError()
+    def extras(self):
         raise NotImplementedError()
     def edge_texts(self):
         raise NotImplementedError()
@@ -126,12 +132,16 @@ class ControlledIntersection:
     def get_edge_data(self, other: 'ControlledIntersection') -> dict[str, typing.Union[EdgeWeight, 'Direction']]:
         return self.edges.get(other)
 
+    @classmethod
+    def get_icon(cls) -> str:
+        raise NotImplementedError()
+
     def __hash__(self):
         return hash(self.id_)
     def __str__(self):
         return f"{self.roads[0]}, {self.roads[1]}"
     def __repr__(self):
-        return f"<{str(type(self))} {str(self)}>"
+        return f"<{self.get_icon()} {str(self)}>"
 
     def get_observation_size(self) -> int:
         raise NotImplementedError()
@@ -153,6 +163,9 @@ class LightIntersection(ControlledIntersection):
         # 1: Next phase
         # 2-(N+1): Jump to phase
         return len(self.phases_set) + 2
+    @classmethod
+    def get_icon(cls) -> str:
+        return "🚦"
 class SignIntersection(ControlledIntersection):
     def __init__(self, road_a : str, road_b : str, destination_weight: int, through: typing.Literal[False, "NS", "EW"] = False):
         super().__init__(road_a, road_b, destination_weight)
@@ -161,6 +174,9 @@ class SignIntersection(ControlledIntersection):
         return 0
     def get_action_size(self) -> int:
         return 0
+    @classmethod
+    def get_icon(cls) -> str:
+        return "🛑"
 class RoundaboutIntersection(ControlledIntersection):
     def __init__(self, road_a : str, road_b : str, destination_weight: int):
         super().__init__(road_a, road_b, destination_weight)
@@ -168,6 +184,9 @@ class RoundaboutIntersection(ControlledIntersection):
         return 0
     def get_action_size(self) -> int:
         return 0
+    @classmethod
+    def get_icon(cls) -> str:
+        return "◯"
 
 
 # DIRECTIONS, ACTIONS, & PHASES
@@ -312,7 +331,8 @@ class Phase(Flag):
             continue
         for action in Action:
             PhasePart[direction.name + "_" + action.name] = direction.__mul__(action, do_cast=False)
-    NONE = 0
+    PhasePart["ALL"] = Direction.ALL.__mul__(Action.ALL, do_cast=False)
+    PhasePart["NONE"] = Direction.NONE.__mul__(Action.NONE, do_cast=False)
 
     @classmethod
     def _names(cls) -> dict['Phase', str]:
@@ -482,3 +502,17 @@ ACTION_PHASE_SETS: dict[str, PhaseSet] = {
         Phase.EB_LEFT_TURNS | Phase.EB_STRAIGHTS,
     ),
 }
+
+USE_ALL_PHASE_SETS = True
+if USE_ALL_PHASE_SETS:
+    PHASE_VALIDITY_CHECKING = False
+    class AllPhaseSet(PhaseSet):
+        def __getitem__(self, *args, **kwargs):
+            return Phase.ALL
+        def __iter__(self):
+            yield Phase.ALL
+    ALL_PHASE_SET = AllPhaseSet(Phase.ALL)
+    class AllPhaseSetSet:
+        def __getitem__(self, *args, **kwargs):
+            return ALL_PHASE_SET
+    ACTION_PHASE_SETS = AllPhaseSetSet()

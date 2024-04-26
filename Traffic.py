@@ -147,7 +147,7 @@ class TrafficState:
         self.set_node_value(node, idx)
     def next_phase(self, node: LightIntersection):
         new_value = (self.get_node_value(node) + 1) % len(node.phase_set)
-        self.set_node_value(new_value)
+        self.set_node_value(node, new_value)
 
     def save(self):
         return NaiveTrafficState(self.map, self.data.copy(), self.throughput.copy())
@@ -160,7 +160,7 @@ class NaiveTrafficState(TrafficState):
 
 
 class FullTrafficState(TrafficState):
-    def __init__(self, map_: TrafficMap, time_step: float = 2/60):
+    def __init__(self, map_: TrafficMap, phase_controller: type['NullPhaseController'] = None, time_step: float = 2/60):
         super().__init__(map_)
 
         self.vehicles: list[Vehicle] = []
@@ -172,8 +172,23 @@ class FullTrafficState(TrafficState):
 
         self.schedule: dict[ControlledIntersection, dict[typing.Union[Phase, Direction], list[Vehicle]]] = {}
 
+        self.phase_controller: 'NullPhaseController' = phase_controller
+        if phase_controller is None:
+            self.phase_controller = NullPhaseController
+        light_intersections = list(filter(lambda x: isinstance(x, LightIntersection), self.map.nodes))
+        self.phase_controller = self.phase_controller(light_intersections, self.get_traffic_callback, self.phase_action_callback)
+
     def get_queueing(self):
         return sum(map(lambda v: sum(map(len, v.values())), self.schedule.values()))
+    def get_queueing_ordered(self):
+        v = []
+        for intersection in self.map.nodes:
+            if intersection not in self.schedule:
+                v.append(0)
+            else:
+                schedule = self.schedule[intersection]
+                v.append(sum(map(len, schedule.values())))
+        return v
 
     def add_schedule(self, vehicle: Vehicle, intersection: ControlledIntersection):
         if intersection not in self.schedule:
@@ -236,15 +251,15 @@ class FullTrafficState(TrafficState):
                 active_phase = Phase.NONE
                 for phase_part in phase_parts:
                     if phase_part in phase:
-                        count, active_phase = self.send_through_n(intersection, active_phase, phase_part, validate=False, n=3)
+                        count, active_phase = self.send_through_n(intersection, active_phase, phase_part, validate=False, n=25)
                         self.throughput[idx] += count
-                count, active_phase = self.send_through_n(intersection, active_phase, Action.RIGHT_TURNS, validate=True, n=2)
+                count, active_phase = self.send_through_n(intersection, active_phase, Action.RIGHT_TURNS, validate=True, n=25)
                 if count > 0:
                     self.throughput[idx] += count
                 yield_directions = phase // Action.LEFT_YIELDS
                 if yield_directions is not Direction.NONE:
                     for direction in yield_directions:
-                        count, active_phase = self.send_through_n(intersection, active_phase, direction * Action.LEFT_YIELDS, validate=True, n=2)
+                        count, active_phase = self.send_through_n(intersection, active_phase, direction * Action.LEFT_YIELDS, validate=True, n=10)
                         if count > 0:
                             self.throughput[idx] += count
 
@@ -326,12 +341,45 @@ class FullTrafficState(TrafficState):
         cars = self.get_cars(node_from, node_to)
         return weight * (cars + 20) / 26.25
 
+    def get_traffic_callback(self, intersection: ControlledIntersection) -> tuple[int, int, int, int, int]:
+        """
+        Returns:
+            0 <int>: Throughput
+            1 <int>: Waiting NB
+            2 <int>: Waiting SB
+            3 <int>: Waiting EB
+            4 <int>: Waiting WB
+        """
+        throughput = self.throughput[self.node_indexer(intersection)]
+        if intersection not in self.edge_indexer:
+            return (throughput, 0, 0, 0, 0)
+        
+        indexer = self.edge_indexer[intersection]
+        out = []
+        for direction in (Direction.NB, Direction.SB, Direction.EB, Direction.WB):
+            edge = intersection.get_edge(direction)
+            if edge is None or edge[0] not in indexer:
+                out.append(0)
+            else:
+                idx = indexer[edge[0]]
+                out.append(self[idx])
+        return (throughput, *out)
+
+    def phase_action_callback(self, intersection: ControlledIntersection, action: int):
+        if action == 0:
+            return
+        elif action == 1:
+            self.next_phase(intersection)
+        else:
+            self.set_current_phase(intersection, action - 2)
+
     def plan(self, node_from, node_to) -> list[ControlledIntersection]:
         return deque(nx.shortest_path(self.map, source=node_from, target=node_to, weight=self.effective_weight))
 
     def step(self):
         self.do_generate()
         self.throughput.fill(0)
+        self.phase_controller.step(time_step = self.time_step)
         for vehicle in self.vehicles:
             if vehicle.progress < 1:
                 vehicle.progress += self.time_step
@@ -339,3 +387,29 @@ class FullTrafficState(TrafficState):
                 self.add_schedule(vehicle, vehicle.approaching)
                 vehicle.scheduled = True
         self.run_schedule()
+
+
+class NullPhaseController:
+    def __init__(self, lights: list[LightIntersection],
+                 get_traffic: typing.Callable[[ControlledIntersection], tuple[int, int, int, int, int]],
+                 take_phase_action: typing.Callable[[ControlledIntersection, int], None]):
+        self.lights = lights
+        self.last_changed = np.zeros(len(self.lights))
+        self.get_traffic = get_traffic
+        self._phase_action_no_delay = take_phase_action
+        self.delay_time = 15/60
+
+    def take_phase_action(self, intersection, int):
+        idx = self.lights.index(intersection)
+        if self.last_changed[idx] > self.delay_time:
+            self._phase_action_no_delay(intersection, int)
+            self.last_changed[idx] = 0
+
+    def step(self, time_step=2/60):
+        self.last_changed += time_step
+
+class NaivePhaseController(NullPhaseController):
+    def step(self, time_step=2/60):
+        super().step(time_step=time_step)
+        for light in self.lights:
+            self.take_phase_action(light, 1)

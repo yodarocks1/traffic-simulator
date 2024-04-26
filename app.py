@@ -2,7 +2,7 @@ from dash import Dash, html, dcc, Input, Output, Patch, State, callback, clients
 import plotly.graph_objects as go
 import numpy as np
 import networkx as nx
-from Traffic import TrafficState, FullTrafficState
+from Traffic import NaivePhaseController, TrafficState, FullTrafficState
 from traffic_map import TrafficMap
 
 MAPBOX_ACCESS_TOKEN = open(".mapbox_token").read()
@@ -57,7 +57,7 @@ class TrafficMapper:
             lat = self.map.edge_latitudes()[i]
             text = (None, self.map.edge_texts()[i], None)
             road = (None, self.map.edge_intersections()[i], None)
-            effective_weight = (None, self.map.edge_texts()[i], None)
+            #effective_weight = (None, self.map.edge_texts()[i], None)
             cars = [None, 0, None]
             lon = (lon[0], sum(lon)/2, lon[1])
             lat = (lat[0], sum(lat)/2, lat[1])
@@ -77,7 +77,7 @@ class TrafficMapper:
                     None],
                     marker_color = 'rgba(0, 0, 0, 0)',
                     line = dict(
-                        width = 1,
+                        width = 3,
                         color = 'rgb(0, 0, 0)'
                     ),
                     name = f"Road Segment {i:05d}",
@@ -103,16 +103,18 @@ class TrafficMapper:
                 lon = self.map.longitudes(),
                 lat = self.map.latitudes(),
                 text = self.map.texts(),
+                customdata = list(zip(self.map.extras(), self.traffic_state.get_queueing_ordered())),
                 hovertemplate = 
                 '<b>%{text}</b><br>' +
-                'Latitude: %{lat}<br>Longitude: %{lon}',
+                'Latitude: %{lat}<br>Longitude: %{lon}<br>' +
+                'Queueing: %{customdata[1]}' +
+                '<extra>Intersections<br>%{customdata[0]}</extra>',
                 marker = dict(
                     size = 4,
                     color = 'rgb(0, 0, 0)'
                 ),
                 name = "Intersections"
             ))
-
         self.get_base = lambda: traces[:]
 
         return traces
@@ -173,11 +175,14 @@ def step_traffic(n_intervals, fig):
         patched_figure.data[node].line.color = 'rgb(' + ','.join(colorize(v)) + ')'
         patched_figure.data[node].customdata[1][1] = v
         #patched_figure.data[node].customdata[2][1] = str(traffic.effective_weight(edge[0], edge[1], edge[2]))
+    for node in tm.map.nodes:
+        node = name_map["Intersections"]
+        patched_figure.data[node].customdata[1] = traffic.get_queueing_ordered()
     return patched_figure
 
 if __name__ == '__main__':
     from logan_traffic_map import LoganTrafficMap
     map_ = LoganTrafficMap()
-    traffic = FullTrafficState(map_)
+    traffic = FullTrafficState(map_, phase_controller=NaivePhaseController)
     tm = TrafficMapper(map_, traffic)
     tm.run(debug=True)
