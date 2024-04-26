@@ -57,6 +57,7 @@ class TrafficMapper:
             lat = self.map.edge_latitudes()[i]
             text = (None, self.map.edge_texts()[i], None)
             road = (None, self.map.edge_intersections()[i], None)
+            effective_weight = (None, self.map.edge_texts()[i], None)
             cars = [None, 0, None]
             lon = (lon[0], sum(lon)/2, lon[1])
             lat = (lat[0], sum(lat)/2, lat[1])
@@ -66,11 +67,12 @@ class TrafficMapper:
                     lon = lon,
                     lat = lat,
                     text = text,
-                    customdata = list(zip(road, cars)),
+                    customdata = list(zip(road, cars)),# effective_weight)),
                     hovertemplate = [None,
                         '<b>%{customdata[0][1]} to %{customdata[0][2]}</b><br>' +
                         'Weight: %{text:0.4f}<br>' + 
-                        'Vehicles: %{customdata[1]}' +
+                        'Vehicles: %{customdata[1]}' +#<br>' +
+                        #'Effective Weight: %{customdata[2]:0.4f}' +
                         '<extra><span style="color: red">Roads</span><br><em>%{customdata[0][0]}</em></extra>',
                     None],
                     marker_color = 'rgba(0, 0, 0, 0)',
@@ -78,7 +80,7 @@ class TrafficMapper:
                         width = 1,
                         color = 'rgb(0, 0, 0)'
                     ),
-                    name = f"Road Segment {i}",
+                    name = f"Road Segment {i:05d}",
                 ))
         for i in range(len(self.map.generator_texts())):
             traces.append(
@@ -141,12 +143,36 @@ def step_traffic(n_intervals, fig):
     for i in range(len(fig["data"])):
         if "name" in fig["data"][i]:
             name_map[fig["data"][i]["name"]] = i
-    for i in range(len(tm.map.edge_list)):
-        node = name_map[f"Road Segment {i}"]
-        edge = tm.map.edge_list[i]
-        v = tm.traffic_state.get_cars(edge[0], edge[1])
-        patched_figure.data[node].line.color = f'rgb({255-v}, {230-2*v}, {230-2.5*v})'
+    red = (255, 0, 0)
+    yellow = (200, 200, 0)
+    green = (0, 128, 0)
+    threshold = traffic.max_cars() + 10
+    def colorize(v):
+        if v >= threshold:
+            return red
+        elif v >= threshold / 2:
+            part_red = (v - (threshold / 2)) / (threshold / 2)
+            part_yellow = 1 - part_red
+            return (
+                str(red[0] * part_red + yellow[0] * part_yellow),
+                str(red[1] * part_red + yellow[1] * part_yellow),
+                str(red[2] * part_red + yellow[2] * part_yellow),
+            )
+        else:
+            part_yellow = v / (threshold / 2)
+            part_green = 1 - part_yellow
+            return (
+                str(green[0] * part_green + yellow[0] * part_yellow),
+                str(green[1] * part_green + yellow[1] * part_yellow),
+                str(green[2] * part_green + yellow[2] * part_yellow),
+            )
+    for edge in tm.map.edge_list:
+        i = tm.map.get_edge_index(edge[0], edge[1])
+        node = name_map[f"Road Segment {i:05d}"]
+        v = traffic.get_cars(edge[0], edge[1])
+        patched_figure.data[node].line.color = 'rgb(' + ','.join(colorize(v)) + ')'
         patched_figure.data[node].customdata[1][1] = v
+        #patched_figure.data[node].customdata[2][1] = str(traffic.effective_weight(edge[0], edge[1], edge[2]))
     return patched_figure
 
 if __name__ == '__main__':

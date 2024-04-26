@@ -2,60 +2,84 @@ import typing
 from collections import deque
 import numpy as np
 import networkx as nx
-from traffic_map import Action, ControlledIntersection, Direction, Phase, RoundaboutIntersection, SignIntersection, TrafficMap, LightIntersection
+from traffic_map import Action, ControlledIntersection, Direction, Phase, RoundaboutIntersection, SignIntersection, TrafficGenerator, TrafficMap, LightIntersection
 
 class Vehicle:
+    NEXT_ID = 0
     def __init__(self, handler: 'FullTrafficState', starting_node: ControlledIntersection, direction: Direction, destination_node: ControlledIntersection):
+        self.id = Vehicle.NEXT_ID
+        Vehicle.NEXT_ID += 1
         self.handler = handler
-        self.plan = handler.plan(starting_node, destination_node)
-        self.next = starting_node
-        self.next_direction = self.next.get_edge_data(self.plan[0])
-        if self.next_direction is not None:
-            self.next_direction = self.next_direction["direction"].oncoming()
+        self.approaching = starting_node
         self.dest = destination_node
+        self.plan = handler.plan(starting_node, destination_node)
+        self.next_node = self.pop_next_node()
         self.direction = direction
+        self.next_direction = self.get_next_direction()
         self.edge = None
         self.progress = 1.0
+        self.scheduled = False
 
     def go(self):
         if self.edge is not None:
             self.handler.modify_cars(self.edge[0], self.edge[1], -1)
-
-        node = self.next
-        if self.next == self.dest or len(self.plan) == 0:
+            
+        if self.is_approaching_destination():
             try:
                 self.handler.vehicles.remove(self)
             except ValueError:
                 pass
             return
-        self.next = self.plan.popleft()
-
-        next_direction_in = node.get_edge_data(self.next)["direction"]
-        next_direction_out = next_direction_in.oncoming()
-        
-        self.edge = (node, *node.get_edge(next_direction_in))
-        self.direction = next_direction_out
+        self.approaching = self.next_node
+        self.direction = self.next_direction
+        self.next_node = self.pop_next_node()
+        self.next_direction = self.get_next_direction()
+        self.edge = self.get_next_edge()
         self.progress = 0.0
-        if len(self.plan) == 0:
-            self.next_direction = None
-        else:
-            self.next_direction = self.next.get_edge_data(self.plan[0])
-            if self.next_direction is not None:
-                self.next_direction = self.next_direction["direction"].oncoming()
+        self.scheduled = False
 
         if self.edge is not None:
             self.handler.modify_cars(self.edge[0], self.edge[1], 1)
 
-    def get_next_action(self):
-        desired_direction = self.next_direction
-        if desired_direction is self.direction:
+    def get_approaching_action(self):
+        desired_direction = self.get_next_direction()
+        if desired_direction is None:
+            return None
+        elif desired_direction is self.direction:
             return Action.STRAIGHTS
         elif desired_direction is self.direction.right():
             return Action.RIGHT_TURNS
         else:
             return Action.LEFT_TURNS
-    def get_next_phase_part(self):
-        return self.direction * self.get_next_action()
+    def get_approaching_phase_part(self):
+        action = self.get_approaching_action()
+        if action is None:
+            return None
+        return self.direction * action
+
+    def pop_next_node(self):
+        if self.approaching == self.dest or len(self.plan) == 0:
+            return None
+        nxt = self.plan.popleft()
+        if nxt == self.approaching:
+            return self.pop_next_node()
+        return nxt
+    def get_next_direction(self):
+        if self.next_node is None:
+            return None
+        if self.next_node not in self.approaching.edges:
+            self.handler.vehicles.remove(self)
+            return None
+        return self.approaching.get_edge_data(self.next_node)["direction"]
+    def get_next_edge(self):
+        next_direction = self.get_next_direction()
+        if next_direction is None:
+            return None
+        return (self.approaching, *self.approaching.get_edge(next_direction))
+    def get_next_node(self):
+        return self.next_node
+    def is_approaching_destination(self):
+        return self.get_next_node() is None
 
 
 class TrafficState:
@@ -81,6 +105,11 @@ class TrafficState:
         else:
             self.throughput = np.array(throughput_data, dtype=np.int32)
 
+    def get_queueing(self):
+        return 0
+    def get_moving(self):
+        return sum(self.data[len(self.map.nodes):]) - self.get_queueing()
+
     def __getitem__(self, *args, **kwargs):
         return self.data.__getitem__(*args, **kwargs)
     def __setitem__(self, *args, **kwargs):
@@ -105,6 +134,8 @@ class TrafficState:
         v = self.get_cars(node_from, node_to)
         self.set_cars(node_from, node_to, v + change)
         return v + change
+    def max_cars(self):
+        return max(self.data[len(self.map.nodes):])
 
     def get_node_value(self, node: ControlledIntersection) -> int:
         return self[self.node_indexer[node]]
@@ -119,7 +150,7 @@ class TrafficState:
         self.set_node_value(new_value)
 
     def save(self):
-        return NaiveTrafficState(self.map, self.copy(), self.throughput.copy())
+        return NaiveTrafficState(self.map, self.data.copy(), self.throughput.copy())
 
     def step(self):
         raise NotImplementedError()
@@ -141,6 +172,9 @@ class FullTrafficState(TrafficState):
 
         self.schedule: dict[ControlledIntersection, dict[typing.Union[Phase, Direction], list[Vehicle]]] = {}
 
+    def get_queueing(self):
+        return sum(map(lambda v: sum(map(len, v.values())), self.schedule.values()))
+
     def add_schedule(self, vehicle: Vehicle, intersection: ControlledIntersection):
         if intersection not in self.schedule:
             self.schedule[intersection] = {}
@@ -148,11 +182,15 @@ class FullTrafficState(TrafficState):
         if type(intersection) is SignIntersection and intersection.through is False:
             key = vehicle.direction
         else:
-            key = vehicle.get_next_phase_part()
+            key = vehicle.get_approaching_phase_part()
+
+        if key is None:
+            vehicle.go()
+            return
         
         if key not in self.schedule[intersection]:
             self.schedule[intersection][key] = deque()
-
+            
         self.schedule[intersection][key].append(vehicle)
 
     def send_through_all(self, node: ControlledIntersection, active_phase: Phase, key: typing.Union[Phase, Direction], validate=False) -> tuple[int, Phase]:
@@ -171,10 +209,18 @@ class FullTrafficState(TrafficState):
         if key not in self.schedule[node]:
             return 0, active_phase
 
-        phase_part = key if type(key) is Phase else (key * self.schedule[node][key].get_next_phase_part())
+        count = min(n, len(self.schedule[node][key]))
+        if type(key) is Phase:
+            phase_part = key
+        else:
+            phase_parts = (key * self.schedule[node][key][i].get_approaching_phase_part() for i in range(count))
+            phase_part = Phase.NONE
+            for part in phase_parts:
+                if type(part) is Phase:
+                    phase_part |= part
         if validate and not (active_phase | phase_part).is_valid():
             return 0, active_phase
-        count = min(n, len(self.schedule[node][key]))
+
         for _ in range(count):
             self.schedule[node][key].popleft().go()
         if len(self.schedule[node][key]) == 0:
@@ -186,9 +232,21 @@ class FullTrafficState(TrafficState):
             idx = self.node_indexer[intersection]
             if type(intersection) is LightIntersection:
                 phase = self.get_current_phase(intersection)
-                for phase_part in self.schedule[intersection]:
+                phase_parts = list(self.schedule[intersection].keys())
+                active_phase = Phase.NONE
+                for phase_part in phase_parts:
                     if phase_part in phase:
-                        self.throughput[idx] += self.send_through_n(intersection, n=3)[0]
+                        count, active_phase = self.send_through_n(intersection, active_phase, phase_part, validate=False, n=3)
+                        self.throughput[idx] += count
+                count, active_phase = self.send_through_n(intersection, active_phase, Action.RIGHT_TURNS, validate=True, n=2)
+                if count > 0:
+                    self.throughput[idx] += count
+                yield_directions = phase // Action.LEFT_YIELDS
+                if yield_directions is not Direction.NONE:
+                    for direction in yield_directions:
+                        count, active_phase = self.send_through_n(intersection, active_phase, direction * Action.LEFT_YIELDS, validate=True, n=2)
+                        if count > 0:
+                            self.throughput[idx] += count
 
             elif type(intersection) is SignIntersection and intersection.through is False:
                 # Round-Robin FIFO
@@ -205,7 +263,7 @@ class FullTrafficState(TrafficState):
                     count, active_phase = self.send_through_n(intersection, active_phase, direction, validate=True)
                     self.throughput[idx] += count
 
-                self.set_node_value(v)
+                self.set_node_value(intersection, v)
 
             elif type(intersection) is SignIntersection:
                 if intersection.through == "NS":
@@ -249,7 +307,7 @@ class FullTrafficState(TrafficState):
             elif type(intersection) is RoundaboutIntersection:
                 # FIFO
                 # Assumes one lane per side
-                for direction in directions:
+                for direction in Direction:
                     count, active_phase = self.send_through_n(intersection, active_phase, direction, validate=False)
                     self.throughput[idx] += count
 
@@ -265,15 +323,8 @@ class FullTrafficState(TrafficState):
 
     def effective_weight(self, node_from, node_to, attrs):
         weight = attrs["weight"]
-        cars = self[self.edge_indexer[node_from][node_to]]
-        v = weight * (cars + 20) / 26.25
-        if v <= 0:
-            print(v)
-            print(node_from)
-            print(node_to)
-            print(attrs)
-            print(cars)
-        return v
+        cars = self.get_cars(node_from, node_to)
+        return weight * (cars + 20) / 26.25
 
     def plan(self, node_from, node_to) -> list[ControlledIntersection]:
         return deque(nx.shortest_path(self.map, source=node_from, target=node_to, weight=self.effective_weight))
@@ -284,6 +335,7 @@ class FullTrafficState(TrafficState):
         for vehicle in self.vehicles:
             if vehicle.progress < 1:
                 vehicle.progress += self.time_step
-            else:
-                self.add_schedule(vehicle, vehicle.next)
+            elif not vehicle.scheduled:
+                self.add_schedule(vehicle, vehicle.approaching)
+                vehicle.scheduled = True
         self.run_schedule()

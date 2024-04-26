@@ -454,22 +454,22 @@ class LoganTrafficMap(TrafficMap):
         texts: list[str] = []
         latitudes: list[tuple[float, float]] = []
         longitudes: list[tuple[float, float]] = []
-        intersections: list[str] = []
+        intersections: list[tuple[str, str, str]] = []
         for edge in edge_list:
             lat0, lon0 = data[edge[0][0]][edge[0][1]]
             lat1, lon1 = data[edge[1][0]][edge[1][1]]
             if edge[3] is Direction.NB:
-                lon0 -= 1.2*self.EDGE_OFFSET
-                lon1 -= 1.2*self.EDGE_OFFSET
-            elif edge[3] is Direction.SB:
                 lon0 += 1.2*self.EDGE_OFFSET
                 lon1 += 1.2*self.EDGE_OFFSET
+            elif edge[3] is Direction.SB:
+                lon0 -= 1.2*self.EDGE_OFFSET
+                lon1 -= 1.2*self.EDGE_OFFSET
             elif edge[3] is Direction.EB:
-                lat0 += self.EDGE_OFFSET
-                lat1 += self.EDGE_OFFSET
-            elif edge[3] is Direction.WB:
                 lat0 -= self.EDGE_OFFSET
                 lat1 -= self.EDGE_OFFSET
+            elif edge[3] is Direction.WB:
+                lat0 += self.EDGE_OFFSET
+                lat1 += self.EDGE_OFFSET
             texts.append(edge[2])
             latitudes.append((lat0, lat1))
             longitudes.append((lon0, lon1))
@@ -539,5 +539,12 @@ class LoganTrafficMap(TrafficMap):
 
 
 if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    #import networkx as nx
     map_ = LoganTrafficMap()
-    map_.draw()
+    pos = {
+        node: tuple(map(lambda x: 2*x, reversed(map_.coord_dict[node.roads[0]][node.roads[1]])))
+        for node in map_
+    }
+    map_.draw(pos, with_labels=True)
+    plt.show()

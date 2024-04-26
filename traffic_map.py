@@ -15,6 +15,11 @@ class TrafficMap(nx.DiGraph):
         self.edge_list = edge_list
         self.generator_list = generator_list
         self.cars_per_unit = cars_per_unit
+        self.edge_indexer = {}
+        for i, edge in enumerate(edge_list):
+            if edge[0] not in self.edge_indexer:
+                self.edge_indexer[edge[0]] = {}
+            self.edge_indexer[edge[0]][edge[1]] = i
     def get_observation_size(self) -> int:
         observation_size = 0
         for node in self.nodes:
@@ -32,6 +37,11 @@ class TrafficMap(nx.DiGraph):
                 destinations[node] = node.destination_weight
         dests, weights = zip(*destinations.items())
         return dests, weights
+    def get_edge_index(self, node_from: 'ControlledIntersection', node_to: 'ControlledIntersection'):
+        if node_from not in self.edge_indexer:
+            return None
+        return self.edge_indexer[node_from].get(node_to)
+
     def texts(self):
         raise NotImplementedError()
     def latitudes(self):
@@ -52,8 +62,8 @@ class TrafficMap(nx.DiGraph):
         raise NotImplementedError()
     def generator_longitudes(self):
         raise NotImplementedError()
-    def draw(self):
-        nx.draw(self)
+    def draw(self, *args, **kwargs):
+        nx.draw(self, *args, **kwargs)
 
 class TrafficGenerator:
     def __init__(self, rate):
@@ -118,6 +128,10 @@ class ControlledIntersection:
 
     def __hash__(self):
         return hash(self.id_)
+    def __str__(self):
+        return f"{self.roads[0]}, {self.roads[1]}"
+    def __repr__(self):
+        return f"<{str(type(self))} {str(self)}>"
 
     def get_observation_size(self) -> int:
         raise NotImplementedError()
