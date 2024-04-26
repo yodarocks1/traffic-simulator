@@ -185,4 +185,4 @@ if __name__ == '__main__':
     map_ = LoganTrafficMap()
     traffic = FullTrafficState(map_, phase_controller=NaivePhaseController)
     tm = TrafficMapper(map_, traffic)
-    tm.run(debug=True)
+    tm.run(debug=False)
