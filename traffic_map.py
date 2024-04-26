@@ -503,7 +503,7 @@ ACTION_PHASE_SETS: dict[str, PhaseSet] = {
     ),
 }
 
-USE_ALL_PHASE_SETS = True
+USE_ALL_PHASE_SETS = False
 if USE_ALL_PHASE_SETS:
     PHASE_VALIDITY_CHECKING = False
     class AllPhaseSet(PhaseSet):
