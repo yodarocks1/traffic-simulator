@@ -90,7 +90,7 @@ class TrafficMapper:
                     lat = self.map.generator_latitudes()[i],
                     text = (self.map.generator_texts()[i], self.map.generator_texts()[i]),
                     hovertemplate =
-                    '<b>Generator (%{text:0.1f} / min)</b>',
+                    '<b>%{text:0.1f} cars / min</b>',
                     line = dict(
                         width = 3,
                         color = 'rgb(0, 0, 255)'
