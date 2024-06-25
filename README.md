@@ -76,16 +76,20 @@ Allowed:
 ```
 *Scenario 3*: Right
 ```
+3a: EB right
 Allowed:
- - EB right
- - SB right
  - 
-    ↓ SB ↑
- ←          ←
- EB        WB
- →→→╮    ╭→→→@
-    ↓ NB ↑
-         @
+    ↓ SB ↑            ↓ SB ↑        
+ ←          ←      ←          ←     
+ EB        WB      EB        WB     
+ →→→╮    ╭→→→@     →→→╮    ╭→→→@    
+    ↓ NB ↑            ↓ NB ↑        
+         @                 @        
+
+3b: EB straight
+    ↓ SB ↑            ↓ SB ↑        
+ ←          ←      ←          ←     
+  EB        WB      EB        WB     
 ```
 
 #### 🛑 Stop Signs (Tributary)
@@ -121,5 +125,5 @@ Vehicles' destinations may be any intersection. Each intersection has a weight, 
  - Press `Start Without Debugging` (or use `Ctrl+F5`)
  - Open `localhost:8050`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTg0NjUzNDE0NywxMjcxMTkzNTk4XX0=
+eyJoaXN0b3J5IjpbNjA5NTY4NDkwLDEyNzExOTM1OThdfQ==
 -->
