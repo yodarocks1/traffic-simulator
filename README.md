@@ -1,4 +1,4 @@
-﻿# Traffic
+# Traffic
 ![Plot with traffic](https://raw.githubusercontent.com/yodarocks1/traffic-simulator/master//plot.png)
 
 The plot, when run, simulates traffic.
@@ -140,5 +140,6 @@ Vehicles' destinations may be any intersection. Each intersection has a weight, 
  - Press `Start Without Debugging` (or use `Ctrl+F5`)
  - Open `localhost:8050`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE1MjU3MzQ5MzMsMTI3MTE5MzU5OF19
+eyJoaXN0b3J5IjpbMTM5MzI2ODMyOCwtMTUyNTczNDkzMywxMj
+cxMTkzNTk4XX0=
 -->
