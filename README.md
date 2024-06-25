@@ -77,12 +77,13 @@ Allowed:
 *Scenario 3*: Right
 ```
 Allowed:
+ - EB right
+ - SB right
  - 
-      
     ↓ SB ↑
  ←          ←
  EB        WB
- →→→     ╭→→→@
+ →→→╮    ╭→→→@
     ↓ NB ↑
          @
 ```
@@ -120,5 +121,5 @@ Vehicles' destinations may be any intersection. Each intersection has a weight, 
  - Press `Start Without Debugging` (or use `Ctrl+F5`)
  - Open `localhost:8050`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTg1Nzg4OTQzLDEyNzExOTM1OThdfQ==
+eyJoaXN0b3J5IjpbMTg0NjUzNDE0NywxMjcxMTkzNTk4XX0=
 -->
