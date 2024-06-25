@@ -48,11 +48,16 @@ Etcetera.
 *Scenario 1*: Left turn
 ```
 NB turns left
+Allowed:
+ - EB right
+ - 
+
     SB
+    
 ←←←←←←╮
 EB    ↑ WB
-      ↑
-    NB↑
+→OK╮  ↑
+   ↓NB↑
 ```
 
 #### 🛑 Stop Signs (Tributary)
@@ -88,5 +93,5 @@ Vehicles' destinations may be any intersection. Each intersection has a weight, 
  - Press `Start Without Debugging` (or use `Ctrl+F5`)
  - Open `localhost:8050`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTgwODcyNTA2NSwxMjcxMTkzNTk4XX0=
+eyJoaXN0b3J5IjpbLTE5MjE0NjI3OTEsMTI3MTE5MzU5OF19
 -->
