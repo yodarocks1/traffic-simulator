@@ -82,20 +82,23 @@ Allowed:
  - WB right
  OR
  - WB straight
-                          
+                      X
     ↓ SB ↑            ↓ SB ↑        
  ←←←╯    ╰←←←      ←←←←←←←←←←←←     
  EB        WB      EB        WB     
-#→→→╮    ╭→→→@     →→→╮    ╭→→→@    
+#→→→╮    ╭→→→@    #→→→╮    ╭→→→@    
     ↓ NB ↑            ↓ NB ↑        
-    #    @                 @        
+    #    @            #    @        
 
 3b: EB left
+Allowed:
+ - SB right
+ - WB left
          #
     ↓ SB ↑            ↓ SB ↑        
- ←     ↗    ←      ←          ←     
- EB  ↗     WB      EB        WB     
-#→→      ╭→→→@     →→→╮    ╭→→→@    
+ ←←←╯  ↗    ←      ←     ↗    ←     
+ EB  ↗     WB      EB  ↗  ↙  WB     
+#→→      ╭→→→@     →→   ↙  ╭→→→@    
     ↓ NB ↑            ↓ NB ↑        
          @                 @        
 ```
@@ -133,5 +136,5 @@ Vehicles' destinations may be any intersection. Each intersection has a weight, 
  - Press `Start Without Debugging` (or use `Ctrl+F5`)
  - Open `localhost:8050`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTgwOTE4ODk0OCwxMjcxMTkzNTk4XX0=
+eyJoaXN0b3J5IjpbLTEzMzc1NTk0MzgsMTI3MTE5MzU5OF19
 -->
