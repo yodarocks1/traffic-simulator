@@ -53,10 +53,9 @@ Allowed:
  - 
 
     SB
-    
-←←←←←←╮
-EB    ↑ WB
-→OK╮  ↑
+←←←←
+EB   ╲  WB
+→OK╮  ╲
    ↓NB↑
 ```
 
@@ -93,5 +92,5 @@ Vehicles' destinations may be any intersection. Each intersection has a weight, 
  - Press `Start Without Debugging` (or use `Ctrl+F5`)
  - Open `localhost:8050`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE5MjE0NjI3OTEsMTI3MTE5MzU5OF19
+eyJoaXN0b3J5IjpbMjMyOTk4MDA1LDEyNzExOTM1OThdfQ==
 -->
