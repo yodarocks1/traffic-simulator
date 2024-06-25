@@ -92,7 +92,8 @@ Allowed:
 #→→→╮    ╭→→→@    #→→→╮    ╭→→→@    
     ↓ NB ↑            ↓ NB ↑        
     #    @            #    @        
------------
+</pre>
+<pre>
 3b: EB left
 Allowed:
  - SB right
