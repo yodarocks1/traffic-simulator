@@ -1,5 +1,5 @@
 ﻿# Traffic
-![Plot with traffic](./plot.png)
+![Plot with traffic](https://raw.githubusercontent.com/yodarocks1/traffic-simulator/master//plot.png)
 
 The plot, when run, simulates traffic.
 The colors represent the number of vehicles on the road (albeit with no respect to the length of the road segment),
@@ -9,15 +9,15 @@ as a percentage of the maximum-count road segment.
 ### Roads
 Hover over roads to see their weights (the time in minutes it takes to travel across the node when no traffic is present)
 
-![Road hover tooltip](./hover_edge.png)
+![Road hover tooltip](https://raw.githubusercontent.com/yodarocks1/traffic-simulator/master//hover_edge.png)
 
 ### Intersections
 Hover over intersections to see their latitude/longitude, and the number of vehicles currently queueing at that intersection.
 They also show an icon representing their type (🚦: Traffic Light, 🛑: Stop Sign, ◯: Roundabout )
 
-![Traffic light hover tooltip](./hover_light.png)
-![Stop sign hover tooltip](./hover_stop.png)
-![Roundabout hover tooltip](./hover_roundabout.png)
+![Traffic light hover tooltip](https://raw.githubusercontent.com/yodarocks1/traffic-simulator/master//hover_light.png)
+![Stop sign hover tooltip](https://raw.githubusercontent.com/yodarocks1/traffic-simulator/master//hover_stop.png)
+![Roundabout hover tooltip](https://raw.githubusercontent.com/yodarocks1/traffic-simulator/master//hover_roundabout.png)
 
 Stop signs will also show which sides have stop signs.
 `EW` indicates that North-South traffic is free-flowing, while East-West traffic must stop.
@@ -26,7 +26,7 @@ Stop signs will also show which sides have stop signs.
 ### Generators
 Hover over generators to see how much traffic is generated from that direction at that intersection.
 
-![Generator hover tooltip](./hover_generator.png)
+![Generator hover tooltip](https://raw.githubusercontent.com/yodarocks1/traffic-simulator/master//hover_generator.png)
 
 ## Logic
 ### Roads
@@ -78,3 +78,6 @@ Vehicles' destinations may be any intersection. Each intersection has a weight, 
  - Open `Traffic.sln`
  - Press `Start Without Debugging` (or use `Ctrl+F5`)
  - Open `localhost:8050`
+<!--stackedit_data:
+eyJoaXN0b3J5IjpbMTI1NjM3Njc1OV19
+-->
