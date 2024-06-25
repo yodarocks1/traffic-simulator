@@ -45,8 +45,9 @@ If it goes straight, then the East-bound car can go *if it is turning right*, th
 
 Etcetera.
 
+<details>
 *Scenario 1*: Left turn
-```
+<pre>
 Allowed:
  - EB right
  - SB left
@@ -58,7 +59,7 @@ Allowed:
 ✓→→→╮  ↖   →→✓
     ↓ NB ↑
     ✓    @
-```
+</
 *Scenario 2*: Straight
 ```
 Allowed:
@@ -94,14 +95,15 @@ Allowed:
 Allowed:
  - SB right
  - WB left
-         #
-    ↓ SB ↑            ↓ SB ↑        
- ←←←╯  ↗    ←      ←     ↗    ←     
- EB  ↗     WB      EB  ↗  ↙  WB     
-#→→      ╭→→→@     →→   ↙  ╭→→→@    
-    ↓ NB ↑            ↓ NB ↑        
-         @                 @        
+    ✓    #
+    ↓ SB ↑
+✓←←←╯  ↗    ←✓
+ EB  ↗  ↙  WB
+#→→   ↙  ╭→→→@
+    ↓ NB ↑
+    ✓    @
 ```
+</details>
 
 #### 🛑 Stop Signs (Tributary)
 Stop signs **can** allow one car from tributaries every 2 seconds, while all cars from the primary roads continue through.
@@ -136,5 +138,5 @@ Vehicles' destinations may be any intersection. Each intersection has a weight, 
  - Press `Start Without Debugging` (or use `Ctrl+F5`)
  - Open `localhost:8050`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEzMzc1NTk0MzgsMTI3MTE5MzU5OF19
+eyJoaXN0b3J5IjpbLTQwMjkxOTM5OSwxMjcxMTkzNTk4XX0=
 -->
