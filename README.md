@@ -51,12 +51,13 @@ NB turns left
 Allowed:
  - EB right
  - 
-     
-     ↓SB
-  ←←  ↘
-  EB ↖  ↘ WB
-OK→→→╮ ↖  →→
-     ↓NB↑
+    ✓
+    ↓SB↑
+←←←  ↘ ╰←←←
+ EB ↖  ↘ WB
+✓→→→╮ ↖  →→→
+    ↓NB↑
+       ~
 ```
 
 #### 🛑 Stop Signs (Tributary)
@@ -92,5 +93,5 @@ Vehicles' destinations may be any intersection. Each intersection has a weight, 
  - Press `Start Without Debugging` (or use `Ctrl+F5`)
  - Open `localhost:8050`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNjI2NDI4Mjc4LDEyNzExOTM1OThdfQ==
+eyJoaXN0b3J5IjpbMTk1MTI3MjM0MywxMjcxMTkzNTk4XX0=
 -->
