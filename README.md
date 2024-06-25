@@ -45,19 +45,13 @@ If it goes straight, then the East-bound car can go *if it is turning right*, th
 
 Etcetera.
 
+*Scenario 1*: Left turn
 ```
+NB turns left
     SB
-    
-EB      WB
-
-    NB
-
-Scenario 1:
-  NB turns left
-    SB
-──────╮
-EB    │ WB
-      │
+←←←←←←╮
+EB    ↑ WB
+      ↑
     NB↑
 ```
 
@@ -94,5 +88,5 @@ Vehicles' destinations may be any intersection. Each intersection has a weight, 
  - Press `Start Without Debugging` (or use `Ctrl+F5`)
  - Open `localhost:8050`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEzNjU4MzkzMCwxMjcxMTkzNTk4XX0=
+eyJoaXN0b3J5IjpbLTgwODcyNTA2NSwxMjcxMTkzNTk4XX0=
 -->
