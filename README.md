@@ -53,10 +53,10 @@ Allowed:
  - 
 
     SB
-←←←←
-EB   ╲  WB
-→OK╮  ╲
-   ↓NB↑
+    ↓
+EB←←  →→WB
+→OK╮ ↑
+   ↓NB
 ```
 
 #### 🛑 Stop Signs (Tributary)
@@ -92,5 +92,5 @@ Vehicles' destinations may be any intersection. Each intersection has a weight, 
  - Press `Start Without Debugging` (or use `Ctrl+F5`)
  - Open `localhost:8050`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjMyOTk4MDA1LDEyNzExOTM1OThdfQ==
+eyJoaXN0b3J5IjpbMTk2Nzc0NTcxMCwxMjcxMTkzNTk4XX0=
 -->
