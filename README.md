@@ -46,6 +46,8 @@ If it goes straight, then the East-bound car can go *if it is turning right*, th
 Etcetera.
 
 <details>
+<summary>Stop sign logic</summary>
+
 *Scenario 1*: Left turn
 <pre>
 Allowed:
@@ -59,9 +61,9 @@ Allowed:
 ✓→→→╮  ↖   →→✓
     ↓ NB ↑
     ✓    @
-</
+</pre>
 *Scenario 2*: Straight
-```
+<pre>
 Allowed:
  - SB right
  - EB right
@@ -74,9 +76,9 @@ Allowed:
 ✓→→→╮    ↑  →X    X→  ↓    ↑  → 
     ↓ NB ↑            ↓ NB ↑    
     ✓    @            ✓    @    
-```
+</pre>
 *Scenario 3*: Right
-```
+<pre>
 3a: EB right
 Allowed:
  - SB right
@@ -90,7 +92,7 @@ Allowed:
 #→→→╮    ╭→→→@    #→→→╮    ╭→→→@    
     ↓ NB ↑            ↓ NB ↑        
     #    @            #    @        
-
+-----------
 3b: EB left
 Allowed:
  - SB right
@@ -102,7 +104,7 @@ Allowed:
 #→→   ↙  ╭→→→@
     ↓ NB ↑
     ✓    @
-```
+</pre>
 </details>
 
 #### 🛑 Stop Signs (Tributary)
@@ -138,5 +140,5 @@ Vehicles' destinations may be any intersection. Each intersection has a weight, 
  - Press `Start Without Debugging` (or use `Ctrl+F5`)
  - Open `localhost:8050`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTQwMjkxOTM5OSwxMjcxMTkzNTk4XX0=
+eyJoaXN0b3J5IjpbLTE1MjU3MzQ5MzMsMTI3MTE5MzU5OF19
 -->
