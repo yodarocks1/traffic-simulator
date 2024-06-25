@@ -31,8 +31,7 @@ Hover over generators to see how much traffic is generated from that direction a
 ## Logic
 ### Roads
 Road weight increases depending on how many cars are on it following the equation:
-
-    (cars + 20) / 26.25
+$w=(cars + 20) / 26.25$
 
 ### Intersections
 #### 🛑 Stop Signs (All-way)
@@ -45,6 +44,10 @@ If it turns left, then the East-bound car can go *if it is turning right*, the S
 If it goes straight, then the East-bound car can go *if it is turning right*, the South-bound car can go *if it is going straight (if the East-bound car didn't turn right) or turning right*, and the West-bound car cannot go.
 
 Etcetera.
+
+```mermaid
+
+```
 
 #### 🛑 Stop Signs (Tributary)
 Stop signs **can** allow one car from tributaries every 2 seconds, while all cars from the primary roads continue through.
@@ -79,5 +82,5 @@ Vehicles' destinations may be any intersection. Each intersection has a weight, 
  - Press `Start Without Debugging` (or use `Ctrl+F5`)
  - Open `localhost:8050`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTI1NjM3Njc1OV19
+eyJoaXN0b3J5IjpbMTI3MTE5MzU5OF19
 -->
