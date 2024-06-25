@@ -45,8 +45,20 @@ If it goes straight, then the East-bound car can go *if it is turning right*, th
 
 Etcetera.
 
-```mermaid
+```
+    SB
+    
+EB      WB
 
+    NB
+
+Scenario 1:
+  NB turns left
+    SB
+    
+EB   \  WB
+     |
+    NB
 ```
 
 #### 🛑 Stop Signs (Tributary)
@@ -82,5 +94,5 @@ Vehicles' destinations may be any intersection. Each intersection has a weight, 
  - Press `Start Without Debugging` (or use `Ctrl+F5`)
  - Open `localhost:8050`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTI3MTE5MzU5OF19
+eyJoaXN0b3J5IjpbLTE3MTI4NjMzNjksMTI3MTE5MzU5OF19
 -->
