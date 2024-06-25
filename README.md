@@ -66,13 +66,13 @@ Allowed:
  - EB right
  OR
  - SB straight
-    ✓    @
-    ↓ SB ↑
-X←←      ↑  ←X
- EB      ↑ WB
- →→→╮    ↑  →X
-    ↓ NB ↑
-    ✓    @
+    ✓    @            ✓    @    
+    ↓ SB ↑            ↓ SB ↑    
+✓←←←╯    ↑  ←X    ✓←←←↓    ↑  ←X
+ EB      ↑ WB      EB ↓    ↑ WB 
+✓→→→╮    ↑  →X    ✓→→  ↓    ↑  →X
+    ↓ NB ↑            ↓ NB ↑    
+    ✓    @            ✓    @    
 ```
 
 #### 🛑 Stop Signs (Tributary)
@@ -108,5 +108,5 @@ Vehicles' destinations may be any intersection. Each intersection has a weight, 
  - Press `Start Without Debugging` (or use `Ctrl+F5`)
  - Open `localhost:8050`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTkwOTU0MzI0MywxMjcxMTkzNTk4XX0=
+eyJoaXN0b3J5IjpbLTE1NzUyMDQ5MDcsMTI3MTE5MzU5OF19
 -->
